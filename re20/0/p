@@ -1,0 +1,36 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+
+dimensions      [0 2 -2 0 0 0 0];           // kinematic pressure, p/rho
+
+internalField   uniform 0;                 // TO CHOOSE: initial value in every cell
+
+boundaryField
+{
+    inlet
+    {
+        type    zeroGradient;                       // TO CHOOSE
+                      // only if the type needs it
+    }
+
+    outlet
+    {
+        type    zeroGradient;                       // TO CHOOSE
+        
+    }
+
+    cylinder
+    {
+        type    zeroGradient;                       // TO CHOOSE
+        
+    }
+
+    top          { type symmetryPlane; }    // set by the mesh
+    bottom       { type symmetryPlane; }    // set by the mesh
+    frontAndBack { type empty; }            // set by the mesh
+}

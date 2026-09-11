@@ -1,0 +1,36 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);          // TO CHOOSE: initial value in every cell
+
+boundaryField
+{
+    inlet
+    {
+        type    fixedValue;                       // TO CHOOSE
+        value uniform (1 0 0);    // only if the type needs it
+    }
+
+    outlet
+    {
+        type    zeroGradient;                       // TO CHOOSE
+        
+    }
+
+    cylinder
+    {
+        type    noSlip;                       // TO CHOOSE
+        
+    }
+
+    top          { type symmetryPlane; }    // set by the mesh
+    bottom       { type symmetryPlane; }    // set by the mesh
+    frontAndBack { type empty; }            // set by the mesh
+}
