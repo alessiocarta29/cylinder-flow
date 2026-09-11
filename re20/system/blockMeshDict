@@ -1,0 +1,108 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+
+scale 1;
+
+vertices
+(
+    (-0.35355339 -0.35355339 0)    // 0  cerchio, 225°
+    ( 0.35355339 -0.35355339 0)    // 1  cerchio, 315°
+    ( 0.35355339  0.35355339 0)    // 2  cerchio, 45°
+    (-0.35355339  0.35355339 0)    // 3  cerchio, 135°
+    (-16 -16 0)                    // 4  angolo in basso a sinistra
+    ( 16 -16 0)                    // 5  angolo in basso a destra
+    ( 16  16 0)                    // 6  angolo in alto a destra
+    (-16  16 0)                    // 7  angolo in alto a sinistra
+
+    (-0.35355339 -0.35355339 1)    // 8
+    ( 0.35355339 -0.35355339 1)    // 9
+    ( 0.35355339  0.35355339 1)    // 10
+    (-0.35355339  0.35355339 1)    // 11
+    (-16 -16 1)                    // 12
+    ( 16 -16 1)                    // 13
+    ( 16  16 1)                    // 14
+    (-16  16 1)                    // 15
+);
+
+blocks
+(
+    hex (0 4 5 1 8 12 13 9)   (16 6 1) simpleGrading (28.4217 1 1)    // in basso
+    hex (1 5 6 2 9 13 14 10)  (16 6 1) simpleGrading (28.4217 1 1)    // a destra
+    hex (2 6 7 3 10 14 15 11) (16 6 1) simpleGrading (28.4217 1 1)    // in alto
+    hex (3 7 4 0 11 15 12 8)  (16 6 1) simpleGrading (28.4217 1 1)    // a sinistra
+);
+
+edges
+(
+    arc 0 1   (0 -0.5 0)
+    arc 1 2   (0.5 0 0)
+    arc 2 3   (0 0.5 0)
+    arc 3 0   (-0.5 0 0)
+
+    arc 8 9   (0 -0.5 1)
+    arc 9 10  (0.5 0 1)
+    arc 10 11 (0 0.5 1)
+    arc 11 8  (-0.5 0 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (7 4 12 15)
+        );
+    }
+
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (5 6 14 13)
+        );
+    }
+
+    top
+    {
+        type symmetryPlane;
+        faces
+        (
+            (6 7 15 14)
+        );
+    }
+
+    bottom
+    {
+        type symmetryPlane;
+        faces
+        (
+            (4 5 13 12)
+        );
+    }
+
+    cylinder
+    {
+        type wall;
+        faces
+        (
+            (0 8 9 1)
+            (1 9 10 2)
+            (2 10 11 3)
+            (3 11 8 0)
+        );
+    }
+);
+
+defaultPatch
+{
+    name frontAndBack;
+    type empty;
+}
