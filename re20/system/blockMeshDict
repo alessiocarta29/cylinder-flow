@@ -6,35 +6,42 @@ FoamFile
     object      blockMeshDict;
 }
 
+// Grid parameters: level 1 of the family in Ferziger et al., sec. 9.12.
+// scripts/grid_study.py overwrites these three entries for levels 2-5.
+nTheta          6;                  // cells per block around the cylinder (4 blocks)
+nR              16;                 // radial cells
+radialGrading   28.4217094304;      // last/first radial cell size = r^(nR-1); r = 1.25 on level 1
+
 scale 1;
 
 vertices
 (
-    (-0.35355339 -0.35355339 0)    // 0  cerchio, 225°
-    ( 0.35355339 -0.35355339 0)    // 1  cerchio, 315°
-    ( 0.35355339  0.35355339 0)    // 2  cerchio, 45°
-    (-0.35355339  0.35355339 0)    // 3  cerchio, 135°
-    (-16 -16 0)                    // 4  angolo in basso a sinistra
-    ( 16 -16 0)                    // 5  angolo in basso a destra
-    ( 16  16 0)                    // 6  angolo in alto a destra
-    (-16  16 0)                    // 7  angolo in alto a sinistra
+    (-0.353553390593 -0.353553390593 0)    // 0  cylinder, 225 deg
+    ( 0.353553390593 -0.353553390593 0)    // 1  cylinder, 315 deg
+    ( 0.353553390593  0.353553390593 0)    // 2  cylinder, 45 deg
+    (-0.353553390593  0.353553390593 0)    // 3  cylinder, 135 deg
+    (-16 -16 0)                            // 4  domain corner, bottom left
+    ( 16 -16 0)                            // 5  domain corner, bottom right
+    ( 16  16 0)                            // 6  domain corner, top right
+    (-16  16 0)                            // 7  domain corner, top left
 
-    (-0.35355339 -0.35355339 1)    // 8
-    ( 0.35355339 -0.35355339 1)    // 9
-    ( 0.35355339  0.35355339 1)    // 10
-    (-0.35355339  0.35355339 1)    // 11
-    (-16 -16 1)                    // 12
-    ( 16 -16 1)                    // 13
-    ( 16  16 1)                    // 14
-    (-16  16 1)                    // 15
+    (-0.353553390593 -0.353553390593 1)    // 8  back plane, as 0
+    ( 0.353553390593 -0.353553390593 1)    // 9  back plane, as 1
+    ( 0.353553390593  0.353553390593 1)    // 10 back plane, as 2
+    (-0.353553390593  0.353553390593 1)    // 11 back plane, as 3
+    (-16 -16 1)                            // 12 back plane, as 4
+    ( 16 -16 1)                            // 13 back plane, as 5
+    ( 16  16 1)                            // 14 back plane, as 6
+    (-16  16 1)                            // 15 back plane, as 7
 );
 
+// x1 radial (outward), x2 around the cylinder (counter-clockwise), x3 span
 blocks
 (
-    hex (0 4 5 1 8 12 13 9)   (16 6 1) simpleGrading (28.4217 1 1)    // in basso
-    hex (1 5 6 2 9 13 14 10)  (16 6 1) simpleGrading (28.4217 1 1)    // a destra
-    hex (2 6 7 3 10 14 15 11) (16 6 1) simpleGrading (28.4217 1 1)    // in alto
-    hex (3 7 4 0 11 15 12 8)  (16 6 1) simpleGrading (28.4217 1 1)    // a sinistra
+    hex (0 4 5 1 8 12 13 9)   ($nR $nTheta 1) simpleGrading ($radialGrading 1 1)    // bottom
+    hex (1 5 6 2 9 13 14 10)  ($nR $nTheta 1) simpleGrading ($radialGrading 1 1)    // right
+    hex (2 6 7 3 10 14 15 11) ($nR $nTheta 1) simpleGrading ($radialGrading 1 1)    // top
+    hex (3 7 4 0 11 15 12 8)  ($nR $nTheta 1) simpleGrading ($radialGrading 1 1)    // left
 );
 
 edges
