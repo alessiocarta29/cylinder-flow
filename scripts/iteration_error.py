@@ -11,43 +11,91 @@ Usage (from the case directory):
 """
 import sys
 
-path = sys.argv[1] if len(sys.argv) > 1 else "postProcessing/forceCoeffs/0/coefficient.dat"
-window = 10  # number of iterations used to average lambda
+DEFAULT_PATH = "postProcessing/forceCoeffs/0/coefficient.dat"
 
-it, cd = [], []
-with open(path) as f:
-    for line in f:
-        if line.startswith("#") or not line.strip():
-            continue
-        cols = line.split()
-        it.append(int(float(cols[0])))
-        cd.append(float(cols[1]))
 
-delta = [b - a for a, b in zip(cd[:-1], cd[1:])]
-tail = delta[-(window + 1):]
+def read_cd(path):
+    """Iteration numbers and Cd values from a forceCoeffs coefficient.dat file."""
+    it, cd = [], []
+    with open(path) as f:
+        for line in f:
+            if line.startswith("#") or not line.strip():
+                continue
+            cols = line.split()
+            it.append(int(float(cols[0])))
+            cd.append(float(cols[1]))
+    return it, cd
 
-ratios = [abs(d1) / abs(d0) for d0, d1 in zip(tail[:-1], tail[1:]) if d0 != 0.0]
-sign_changes = sum(1 for d0, d1 in zip(tail[:-1], tail[1:]) if d0 * d1 < 0.0)
 
-print(f"iterations           : {it[-1]}")
-print(f"Cd (last)            : {cd[-1]:.12f}")
-print("last deltas          : " + " ".join(f"{d:+.2e}" for d in delta[-6:]))
-print(f"sign changes (last {window}): {sign_changes}")
+def estimate(path, window=10):
+    """Sec. 5.7 estimate. 'status' is 'ok' only when the real-eigenvalue formula applies."""
+    it, cd = read_cd(path)
+    result = {
+        "iterations": it[-1] if it else 0,
+        "cd": cd[-1] if cd else None,
+        "last_deltas": [],
+        "sign_changes": 0,
+        "window": window,
+        "lambda": None,
+        "eps": None,
+        "eps_rel": None,
+        "max_tail_delta": None,
+    }
+    if len(cd) < 3:
+        result["status"] = "too_few_iterations"
+        return result
 
-if not ratios or delta[-1] == 0.0:
-    print("lambda               : not computable (last deltas below write resolution:")
-    print("                       the iteration error is below ~1e-12 or writePrecision is too low)")
-    sys.exit(0)
+    delta = [b - a for a, b in zip(cd[:-1], cd[1:])]
+    tail = delta[-(window + 1):]
+    ratios = [abs(d1) / abs(d0) for d0, d1 in zip(tail[:-1], tail[1:]) if d0 != 0.0]
+    result["last_deltas"] = delta[-6:]
+    result["sign_changes"] = sum(1 for d0, d1 in zip(tail[:-1], tail[1:]) if d0 * d1 < 0.0)
 
-lam = sum(ratios) / len(ratios)
-print(f"lambda (mean)        : {lam:.4f}")
+    if not ratios or delta[-1] == 0.0:
+        result["status"] = "below_resolution"
+        return result
 
-if sign_changes > window // 2:
-    print("iteration error      : not estimated (oscillating deltas, complex eigenvalues likely;")
-    print("                       the real-eigenvalue formula does not apply, see sec. 5.7)")
-    print(f"                       max |delta| over last {window}: {max(abs(d) for d in tail):.2e}")
-elif lam >= 1.0:
-    print("iteration error      : not estimated (lambda >= 1: not converging)")
-else:
-    eps = abs(delta[-1]) / (1.0 - lam)
-    print(f"iteration error Cd   : {eps:.2e}  ({eps / abs(cd[-1]):.1e} relative)")
+    lam = sum(ratios) / len(ratios)
+    result["lambda"] = lam
+
+    if result["sign_changes"] > window // 2:
+        result["status"] = "oscillating"
+        result["max_tail_delta"] = max(abs(d) for d in tail)
+    elif lam >= 1.0:
+        result["status"] = "not_converging"
+    else:
+        eps = abs(delta[-1]) / (1.0 - lam)
+        result.update(status="ok", eps=eps, eps_rel=eps / abs(cd[-1]))
+    return result
+
+
+def main():
+    path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PATH
+    r = estimate(path)
+
+    print(f"iterations           : {r['iterations']}")
+    if r["status"] == "too_few_iterations":
+        print("iteration error      : not estimated (fewer than 3 iterations)")
+        return
+    print(f"Cd (last)            : {r['cd']:.12f}")
+    print("last deltas          : " + " ".join(f"{d:+.2e}" for d in r["last_deltas"]))
+    print(f"sign changes (last {r['window']}): {r['sign_changes']}")
+
+    if r["status"] == "below_resolution":
+        print("lambda               : not computable (last deltas below write resolution:")
+        print("                       the iteration error is below ~1e-12 or writePrecision is too low)")
+        return
+
+    print(f"lambda (mean)        : {r['lambda']:.4f}")
+    if r["status"] == "oscillating":
+        print("iteration error      : not estimated (oscillating deltas, complex eigenvalues likely;")
+        print("                       the real-eigenvalue formula does not apply, see sec. 5.7)")
+        print(f"                       max |delta| over last {r['window']}: {r['max_tail_delta']:.2e}")
+    elif r["status"] == "not_converging":
+        print("iteration error      : not estimated (lambda >= 1: not converging)")
+    else:
+        print(f"iteration error Cd   : {r['eps']:.2e}  ({r['eps_rel']:.1e} relative)")
+
+
+if __name__ == "__main__":
+    main()
