@@ -8,29 +8,27 @@ FoamFile
 
 dimensions      [0 1 -1 0 0 0 0];
 
-internalField   uniform (0 0 0);          // TO CHOOSE: initial value in every cell
+internalField   uniform (1 0 0);            // free-stream start; steady solution does not depend on it
 
 boundaryField
 {
     inlet
     {
-        type    fixedValue;                       // TO CHOOSE
-        value uniform (1 0 0);    // only if the type needs it
+        type    fixedValue;
+        value   uniform (1 0 0);
     }
 
     outlet
     {
-        type    zeroGradient;                       // TO CHOOSE
-        
+        type    zeroGradient;
     }
 
     cylinder
     {
-        type    noSlip;                       // TO CHOOSE
-        
+        type    noSlip;
     }
 
-    top          { type symmetryPlane; }    // set by the mesh
-    bottom       { type symmetryPlane; }    // set by the mesh
-    frontAndBack { type empty; }            // set by the mesh
+    top          { type symmetryPlane; }
+    bottom       { type symmetryPlane; }
+    frontAndBack { type empty; }
 }
