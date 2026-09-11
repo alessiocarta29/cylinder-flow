@@ -8,29 +8,26 @@ FoamFile
 
 dimensions      [0 2 -2 0 0 0 0];           // kinematic pressure, p/rho
 
-internalField   uniform 0;                 // TO CHOOSE: initial value in every cell
+internalField   uniform 0;
 
 boundaryField
 {
     inlet
     {
-        type    zeroGradient;                       // TO CHOOSE
-                      // only if the type needs it
+        type    zeroGradient;
     }
 
     outlet
     {
-        type    zeroGradient;                       // TO CHOOSE
-        
+        type    zeroGradient;
     }
 
     cylinder
     {
-        type    zeroGradient;                       // TO CHOOSE
-        
+        type    zeroGradient;
     }
 
-    top          { type symmetryPlane; }    // set by the mesh
-    bottom       { type symmetryPlane; }    // set by the mesh
-    frontAndBack { type empty; }            // set by the mesh
+    top          { type symmetryPlane; }
+    bottom       { type symmetryPlane; }
+    frontAndBack { type empty; }
 }
