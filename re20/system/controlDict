@@ -15,10 +15,52 @@ endTime           2000;
 deltaT            1;
 
 writeControl      timeStep;
-writeInterval     500;
+writeInterval     1000;
 writeFormat       ascii;
-writePrecision    6;
+writePrecision    12;
 timeFormat        general;
 timePrecision     6;
 
 runTimeModifiable true;
+
+functions
+{
+    forces
+    {
+        type            forces;
+        libs            (forces);
+        patches         (cylinder);
+        rho             rhoInf;         // incompressible: kinematic pressure
+        rhoInf          1;
+        CofR            (0 0 0);
+        writeControl    timeStep;
+        writeInterval   1;
+    }
+
+    forceCoeffs
+    {
+        type            forceCoeffs;
+        libs            (forces);
+        patches         (cylinder);
+        rho             rhoInf;
+        rhoInf          1;
+        magUInf         1;
+        lRef            1;
+        Aref            1;              // D times the unit span of the mesh
+        origin          (0 0 0);
+        e1              (1 0 0);        // drag direction
+        e3              (0 1 0);        // lift direction (default would be z)
+        coefficients    (Cd Cl);
+        writeControl    timeStep;
+        writeInterval   1;
+    }
+
+    solverInfo
+    {
+        type            solverInfo;
+        libs            (utilityFunctionObjects);
+        fields          (U p);
+        writeControl    timeStep;
+        writeInterval   1;
+    }
+}
