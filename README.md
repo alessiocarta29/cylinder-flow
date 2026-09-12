@@ -275,3 +275,9 @@ python3 scripts/iteration_error.py # from a case directory
 
 J. H. Ferziger, M. Perić, R. L. Street, *Computational Methods for Fluid
 Dynamics*, 4th ed., Springer, 2020 — sec. 7.1, 9.11, 9.12.
+
+## Note
+
+This study was carried out with the assistance of a large language model for
+OpenFOAM syntax, scripting and documentation. All physical and numerical
+decisions, and the analysis of the results, are the author's.
