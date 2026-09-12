@@ -138,6 +138,13 @@ alone: p = log2(d1/d2).
 | Viscous | -0.027330 | -0.021743 | -0.011927 | -0.006229 | 1.26 (0.33), 1.82 (0.87), 1.91 (0.94) |
 | Total | +0.009783 | +0.002888 | +0.000312 | -0.000779 | non-monotonic |
 
+![Grid convergence](figures/grid_convergence_re20.png)
+
+The slope on a log-log plot is the observed order. The pressure component with
+the cell value and the viscous component both lie on the first-order reference
+line; the pressure component with linear wall extrapolation follows the
+second-order line over levels 2-4 and then drops below it.
+
 Both force components converge at first order, not second. Their errors are
 nearly equal and opposite, so they largely cancel in the total: the total is the
 difference of two first-order errors, its sequence changes sign between the two
