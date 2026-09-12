@@ -175,3 +175,21 @@ total 2.0911, against the book's converged value of 2.083 (+0.39%).
 ## Reproducing
 
 Requires OpenFOAM v2606 with its environment loaded.
+`re20/` is the template case: schemes, boundary conditions and solver settings
+live there in a single copy, and `scripts/grid_study.py` changes only the three
+mesh entries of `blockMeshDict` plus the iteration cap. This guarantees by
+construction that nothing but the grid differs between levels. Generated cases go
+to `runs/` (not tracked); results are collected in
+`results/re20_grid_study.csv` (tracked).
+
+Post-processing:
+
+cd runs/re20/L5 && postProcess -func writeCellCentres -latestTime
+python3 scripts/wall_pressure.py runs/re20/L5
+python3 scripts/iteration_error.py # from a case directory
+
+
+## Reference
+
+J. H. Ferziger, M. Perić, R. L. Street, *Computational Methods for Fluid
+Dynamics*, 4th ed., Springer, 2020 — sec. 7.1, 9.11, 9.12.
