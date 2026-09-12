@@ -1,7 +1,5 @@
 # Flow past a circular cylinder (2D, OpenFOAM)
 
-# Flow past a circular cylinder (2D, OpenFOAM)
-
 Verification study of steady laminar flow past a circular cylinder at Re = 20,
 reproducing the test case of Ferziger, Perić & Street, *Computational Methods
 for Fluid Dynamics*, sec. 9.12. Re = 200 (unsteady, vortex shedding) is planned
@@ -192,26 +190,62 @@ confirmation that the earlier agreement came from cancellation.
 Extrapolated per component: pressure 1.2639, viscous 0.8273, total 2.0911,
 against the book's converged value of 2.083 (+0.39%).
 
+### Wall shear treatment
+
+The same experiment was repeated for the viscous force. `scripts/wall_shear.py`
+recomputes it with a three-point one-sided formula for the wall velocity
+gradient, through the wall and the first two cell centres, against the two-point
+difference OpenFOAM uses.
+
+| | L1→L2 | L2→L3 | L3→L4 | L4→L5 | Ratios (order) |
+|---|---|---|---|---|---|
+| OpenFOAM | -0.027330 | -0.021743 | -0.011927 | -0.006229 | 1.26 (0.33), 1.82 (0.87), 1.91 (0.94) |
+| Two-point | +0.013436 | -0.007847 | -0.008320 | -0.005469 | -1.71, 0.94, 1.52 (0.61) |
+| Three-point | -0.040378 | -0.046521 | -0.030486 | -0.017195 | 0.87, 1.53, 1.77 (0.83) |
+
+The three-point formula does not restore second order, and moves the value away
+from the other two: it extrapolates to 0.8239 against 0.8273. The script itself
+is sound — its two-point column approaches the OpenFOAM value at second order
+(differences -0.0591, -0.0184, -0.0045, -0.00085, -0.00009), which confirms the
+face geometry and the cell indexing.
+
+The interpretation is that wall pressure and wall shear are not the same kind of
+quantity. Reconstructing a wall *value* propagates the second-order field error
+unamplified, so removing the first-order truncation of the extrapolation is
+enough. Reconstructing a *derivative* divides that field error by the wall
+distance, which is proportional to h: a second-order field error becomes a
+first-order error in the gradient, and no reconstruction formula can remove it,
+because it is not a truncation error of the formula. The three-point version
+removes the truncation term, which had the opposite sign and was partly
+cancelling the amplified term, and the result gets worse.
+
+This interpretation accounts for the sign, the order and the deterioration, but
+was not verified directly; it would require measuring the convergence order of
+the velocity at a fixed distance from the wall. It is also in tension with
+Fig. 9.26 of the book, which shows second-order convergence for both components.
+
+If correct, the first-order convergence of the viscous force is structural rather
+than a defect, the observed order of 0.94 is the true one, and Richardson
+extrapolation with that order is legitimate.
+
 ## Open issues
 
-- The viscous component is still first order (observed 0.94). The cause is likely
-  the same in kind: the wall shear comes from a two-point one-sided difference of
-  the velocity, whose leading error is proportional to the wall distance and is
-  therefore first order even on a uniform grid. A three-point formula through the
-  wall and the first two cells cancels that term, and can be tested in
-  post-processing as was done for pressure. Note that this has nothing to do with
-  the convection scheme: both components are extracted from the same converged
-  field, and changing only how the wall pressure is read moved one of them to
-  second order.
-- The remaining 0.39% gap from the book is unexplained. Extrapolated values should
-  be independent of grid and scheme, so either the two continuous problems differ
-  or one extrapolation is unreliable. Domain and boundary conditions have been
-  checked and match; the viscous extrapolation rests on an observed order that is
-  still drifting, and is the weaker of the two.
+## Open issues
+
+- The 0.39% gap from the book's converged value is unexplained. Extrapolated
+  values should be independent of grid and scheme, so either the two continuous
+  problems differ or one extrapolation is unreliable. Domain and boundary
+  conditions have been checked and match. The candidates are the outer boundary
+  at 16 D, which the book itself notes may not be far enough, and the book's own
+  extrapolation.
+- The amplification argument for the wall shear is an interpretation, not a
+  verified result, and is in tension with Fig. 9.26.
+- The last ratio of the extrapolated pressure component, 13.23, lies above the
+  theoretical value of 4 and is not explained. It is not iterative noise.
 - The cylinder surface is a polygon inscribed in the circle. The perimeter error
   is second order (0.3% on L1) and is absorbed into the discretization error.
-- Even a fully converged result here is a code-to-code verification against a 2D
-  reference, not a validation against physical measurements.
+- This is a code-to-code verification against a 2D reference, not a validation
+  against measurements. Re = 200 is planned next.
 
 ## Reproducing
 
