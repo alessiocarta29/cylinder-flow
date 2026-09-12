@@ -71,13 +71,14 @@ def estimate(path, window=10):
 
 def main():
     path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PATH
-    r = estimate(path)
+    window = int(sys.argv[2]) if len(sys.argv) > 2 else 10   # iterazioni su cui si media lambda
+    r = estimate(path, window)
 
     print(f"iterations           : {r['iterations']}")
     if r["status"] == "too_few_iterations":
         print("iteration error      : not estimated (fewer than 3 iterations)")
         return
-    print(f"Cd (last)            : {r['cd']:.12f}")
+    print(f"valore (ultimo)      : {r['cd']:.12f}")
     print("last deltas          : " + " ".join(f"{d:+.2e}" for d in r["last_deltas"]))
     print(f"sign changes (last {r['window']}): {r['sign_changes']}")
 
@@ -94,7 +95,7 @@ def main():
     elif r["status"] == "not_converging":
         print("iteration error      : not estimated (lambda >= 1: not converging)")
     else:
-        print(f"iteration error Cd   : {r['eps']:.2e}  ({r['eps_rel']:.1e} relative)")
+        print(f"errore iterativo     : {r['eps']:.2e}  ({r['eps_rel']:.1e} relative)")
 
 
 if __name__ == "__main__":
